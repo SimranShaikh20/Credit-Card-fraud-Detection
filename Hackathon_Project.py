@@ -5,35 +5,57 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import streamlit as st
 
-# Importing data
-data=pd.read_csv("creditcard.csv")
-legit=data[data.Class==0]
-fraud=data[data['Class']==1]
-x=data.drop('Class',axis=1)
-y=data['Class']
+# Load and preprocess the dataset
+data = pd.read_csv("creditcard.csv")
 
-legit_s=legit.sample(n=len(fraud),random_state=2)
-data=pd.concat([legit_s,fraud],axis=0)
-x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,stratify=y,random_state=2)
+# Splitting into legit and fraud cases
+legit = data[data.Class == 0]
+fraud = data[data.Class == 1]
 
-model=LogisticRegression()
-model.fit(x_train,y_train)
-# evalution of model performance
-train_acc=accuracy_score(model.predict(x_train),y_train)
-test_acc=accuracy_score(model.predict(x_test),y_test)
+# Balance the dataset
+legit_sample = legit.sample(n=len(fraud), random_state=2)
+balanced_data = pd.concat([legit_sample, fraud], axis=0)
 
-#web app
+# Splitting features and target
+x = balanced_data.drop('Class', axis=1)
+y = balanced_data['Class']
+
+# Splitting into train and test datasets
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=2)
+
+# Logistic Regression model
+model = LogisticRegression(max_iter=500)  # Increase iterations for convergence
+model.fit(x_train, y_train)
+
+# Evaluate the model
+train_acc = accuracy_score(model.predict(x_train), y_train)
+test_acc = accuracy_score(model.predict(x_test), y_test)
+
+# Streamlit web app
 st.title("Credit Card Fraud Detection Model")
-input_data=st.text_area("Enter All Required features Values here :")
-input_s=input_data.split(',')
+st.write(f"Model Training Accuracy: {train_acc:.2f}")
+st.write(f"Model Testing Accuracy: {test_acc:.2f}")
 
-submit=st.button("Submit")
+# Input from the user
+st.write("Enter feature values separated by commas (matching the feature set):")
+input_data = st.text_area("Example: 1.0, 0.5, -0.2, ...")
+
+submit = st.button("Submit")
 
 if submit:
-    features=np_data=np.asarray(input_s,dtype=np.float64)
-    detection=model.predict(features.reshape(1,-1))
-
-    if detection[0]==0:
-        st.write("Legitment")
-    else:
-        st.write("Fraud ")
+    try:
+        # Convert input data to numpy array
+        features = np.asarray([float(x) for x in input_data.split(',')], dtype=np.float64)
+        
+        # Validate input shape
+        if features.shape[0] != x.shape[1]:
+            st.error(f"Invalid number of features! Expected {x.shape[1]}, but got {features.shape[0]}.")
+        else:
+            # Make prediction
+            detection = model.predict(features.reshape(1, -1))
+            if detection[0] == 0:
+                st.success("Transaction is Legitimate.")
+            else:
+                st.error("Transaction is Fraudulent.")
+    except ValueError:
+        st.error("Invalid input! Please enter numeric values only.")
