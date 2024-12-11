@@ -7,23 +7,44 @@ import streamlit as st
 
 # Importing data
 data = pd.read_csv("creditcard.csv")
+
+# Checking for missing or infinite values
+if data.isnull().sum().any() or np.any(np.isinf(data)):
+    st.write("Data contains missing or infinite values. Cleaning the data...")
+    data = data.dropna()  # Drop rows with NaN values
+    # If there are any infinite values, remove them
+    data = data[~data.isin([np.inf, -np.inf]).any(axis=1)]
+
+# Split data into legitimate and fraudulent transactions
 legit = data[data.Class == 0]
 fraud = data[data['Class'] == 1]
 
-# Preparing features and target
-x = data.drop('Class', axis=1)
-y = data['Class']
-
-# Balancing the dataset by sampling
+# Resampling legitimate transactions to match fraudulent transactions count
 legit_s = legit.sample(n=len(fraud), random_state=2)
 data = pd.concat([legit_s, fraud], axis=0)
+
+# Features and target
 x = data.drop('Class', axis=1)
 y = data['Class']
 
-# Train-test split
+# Checking for matching lengths of x and y
+if x.shape[0] != y.shape[0]:
+    st.write(f"Shape mismatch: x has {x.shape[0]} rows, but y has {y.shape[0]} rows.")
+else:
+    # Ensure both x and y have the correct data
+    print("x and y have matching lengths.")
+    print(x.head())
+    print(y.head())
+
+# Checking for class imbalance
+class_counts = y.value_counts()
+st.write("Class distribution:")
+st.write(class_counts)
+
+# Proceed with train-test split
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=2)
 
-# Train the model
+# Train the Logistic Regression model
 model = LogisticRegression(max_iter=10000)
 model.fit(x_train, y_train)
 
