@@ -20,42 +20,52 @@ balanced_data = pd.concat([legit_sample, fraud], axis=0)
 x = balanced_data.drop('Class', axis=1)
 y = balanced_data['Class']
 
-# Splitting into train and test datasets
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=2)
+# Verify the class distribution
+st.write("Class distribution in balanced data:")
+st.write(y.value_counts())
 
-# Logistic Regression model
-model = LogisticRegression(max_iter=500)  # Increase iterations for convergence
-model.fit(x_train, y_train)
+# Check if stratify is feasible
+if y.value_counts().min() < 2:
+    st.error("Insufficient data to stratify. Reduce test size or gather more samples.")
+else:
+    # Train-test split with adjusted test size if needed
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, stratify=y, random_state=2
+    )
 
-# Evaluate the model
-train_acc = accuracy_score(model.predict(x_train), y_train)
-test_acc = accuracy_score(model.predict(x_test), y_test)
+    # Logistic Regression model
+    model = LogisticRegression(max_iter=500)  # Increase iterations for convergence
+    model.fit(x_train, y_train)
 
-# Streamlit web app
-st.title("Credit Card Fraud Detection Model")
-st.write(f"Model Training Accuracy: {train_acc:.2f}")
-st.write(f"Model Testing Accuracy: {test_acc:.2f}")
+    # Evaluate the model
+    train_acc = accuracy_score(model.predict(x_train), y_train)
+    test_acc = accuracy_score(model.predict(x_test), y_test)
 
-# Input from the user
-st.write("Enter feature values separated by commas (matching the feature set):")
-input_data = st.text_area("Example: 1.0, 0.5, -0.2, ...")
+    # Streamlit web app
+    st.title("Credit Card Fraud Detection Model")
+    st.write(f"Model Training Accuracy: {train_acc:.2f}")
+    st.write(f"Model Testing Accuracy: {test_acc:.2f}")
 
-submit = st.button("Submit")
+    # Input from the user
+    st.write("Enter feature values separated by commas (matching the feature set):")
+    input_data = st.text_area("Example: 1.0, 0.5, -0.2, ...")
 
-if submit:
-    try:
-        # Convert input data to numpy array
-        features = np.asarray([float(x) for x in input_data.split(',')], dtype=np.float64)
-        
-        # Validate input shape
-        if features.shape[0] != x.shape[1]:
-            st.error(f"Invalid number of features! Expected {x.shape[1]}, but got {features.shape[0]}.")
-        else:
-            # Make prediction
-            detection = model.predict(features.reshape(1, -1))
-            if detection[0] == 0:
-                st.success("Transaction is Legitimate.")
+    submit = st.button("Submit")
+
+    if submit:
+        try:
+            # Convert input data to numpy array
+            features = np.asarray([float(x) for x in input_data.split(',')], dtype=np.float64)
+
+            # Validate input shape
+            if features.shape[0] != x.shape[1]:
+                st.error(f"Invalid number of features! Expected {x.shape[1]}, but got {features.shape[0]}.")
             else:
-                st.error("Transaction is Fraudulent.")
-    except ValueError:
-        st.error("Invalid input! Please enter numeric values only.")
+                # Make prediction
+                detection = model.predict(features.reshape(1, -1))
+                if detection[0] == 0:
+                    st.success("Transaction is Legitimate.")
+                else:
+                    st.error("Transaction is Fraudulent.")
+        except ValueError:
+            st.error("Invalid input! Please enter numeric values only.")
