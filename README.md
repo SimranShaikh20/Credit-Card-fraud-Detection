@@ -10,14 +10,23 @@ This project applies machine learning techniques to detect fraudulent credit car
 ## 🎯 Project Aims
 
 🔹 **Real-World Application:** Machine learning applied to financial fraud detection.
+
 🔹 **Handling Imbalanced Data:** Uses undersampling to balance fraud and legitimate transactions.
+
 🔹 **ML Workflow:** Covers data loading, preprocessing, model training, and evaluation.
+
 🔹 **Python Libraries:** Utilizes `pandas`, `numpy`, and `scikit-learn`.
+
 🔹 **Simple Model Implementation:** Starts with Logistic Regression.
+
 🔹 **Model Evaluation:** Assesses accuracy on training and test data.
+
 🔹 **Web Integration:** Implements a Streamlit interface for predictions.
+
 🔹 **Reproducibility:** Open dataset and code for easy replication.
+
 🔹 **Scalability:** Can be expanded with advanced techniques.
+
 🔹 **Significance:** Highlights fraud detection's importance in the financial sector.
 
 ---
